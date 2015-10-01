@@ -1,4 +1,5 @@
-﻿using Microsoft.VisualStudio;
+﻿using EnvDTE;
+using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.OLE.Interop;
 using Microsoft.VisualStudio.Shell;
@@ -18,7 +19,6 @@ using System.Windows.Input;
 
 namespace MiddleClickToPeekDefinition
 {
-    //adding comment to try git push again
     #region Key Section
 
     [Export(typeof(IKeyProcessorProvider))]
@@ -99,6 +99,41 @@ namespace MiddleClickToPeekDefinition
     }
 
 
+
+
+    #endregion
+
+    #region Options Section
+
+    internal sealed class OptionsProcessor
+    {
+        DTE _envSvc;
+
+        public OptionsProcessor(DTE envSvc)
+        {
+            _envSvc = envSvc;
+        }
+
+        private EnvDTE.Properties getProperties()
+        {
+            return _envSvc.get_Properties("MiddleClickDefinition", "General");            
+        }
+
+        public CommandSetting MiddleClick()
+        {
+            var props = getProperties();
+            var setting = props.Item("MiddleClickSetting").Value;
+            return (CommandSetting)setting;
+        }
+
+        public CommandSetting CtrlMiddleClick()
+        {
+            var props = getProperties();
+            var setting = props.Item("CtrlMiddleClickSetting").Value;
+            return (CommandSetting)setting;
+        }
+    }
+
     #endregion
 
     #region Mouse Section
@@ -123,16 +158,17 @@ namespace MiddleClickToPeekDefinition
         public IMouseProcessor GetAssociatedProcessor(IWpfTextView view)
         {
             var buffer = view.TextBuffer;
-
+            
             IOleCommandTarget shellCommandDispatcher = GetShellCommandDispatcher(view);
 
             if (shellCommandDispatcher == null)
                 return null;
-
+            
             return new GoToDefMouseHandler(view,
                                            shellCommandDispatcher,
                                            _aggregatorFactory.GetClassifier(buffer),
                                            _navigatorService.GetTextStructureNavigator(buffer),
+                                           GetOptionsProcessor(),
                                            CtrlKeyState.GetStateForView(view));
         }
 
@@ -141,6 +177,11 @@ namespace MiddleClickToPeekDefinition
             return _globalServiceProvider.GetService(typeof(SUIHostCommandDispatcher)) as IOleCommandTarget;
         }
 
+        OptionsProcessor GetOptionsProcessor()
+        {
+            DTE env = (DTE)_globalServiceProvider.GetService(typeof(DTE));
+            return new OptionsProcessor(env);
+        }
     }
 
     internal sealed class GoToDefMouseHandler : MouseProcessorBase
@@ -149,15 +190,17 @@ namespace MiddleClickToPeekDefinition
         readonly IClassifier _aggregator;
         readonly ITextStructureNavigator _navigator;
         readonly IOleCommandTarget _commandTarget;
+        OptionsProcessor _options;
         CtrlKeyState _state;
 
         public GoToDefMouseHandler(IWpfTextView view, IOleCommandTarget commandTarget, IClassifier aggregator,
-                                   ITextStructureNavigator navigator, CtrlKeyState state)
+                                   ITextStructureNavigator navigator, OptionsProcessor optionsProcessor, CtrlKeyState state)
         {
             _view = view;
             _commandTarget = commandTarget;
             _aggregator = aggregator;
             _navigator = navigator;
+            _options = optionsProcessor;
             _state = state;            
         }
 
@@ -185,9 +228,13 @@ namespace MiddleClickToPeekDefinition
                     if (IsSignificantElement(RelativeToView(e.GetPosition(_view.VisualElement))))
                     {
                         if (_state.Enabled) //ctrl down
-                            this.DispatchGoToDef();
+                        {                            
+                            DispatchCommand(_options.CtrlMiddleClick());
+                        }
                         else                //ctrl up
-                            this.DispatchPeekDef();                            
+                        {
+                            DispatchCommand(_options.MiddleClick());
+                        }
                     }
 
                     e.Handled = true;
@@ -273,6 +320,22 @@ namespace MiddleClickToPeekDefinition
             return false;
         }
 
+        void DispatchCommand(CommandSetting cmdSetting)
+        {
+            switch (cmdSetting)
+            {
+                case CommandSetting.GoToDefinition:
+                    DispatchGoToDef();
+                    break;
+                case CommandSetting.PeekDefinition:
+                    DispatchPeekDef();
+                    break;
+                case CommandSetting.Nothing:
+                    //nothing
+                    break;
+            }
+        }
+
         void DispatchGoToDef()
         {
             try
@@ -292,7 +355,7 @@ namespace MiddleClickToPeekDefinition
         void DispatchPeekDef()
         {
             try
-            {
+            {                
                 Guid cmdGroup = VSConstants.CMDSETID.StandardCommandSet12_guid;
                 int hr = _commandTarget.Exec(ref cmdGroup,
                                              (uint)VSConstants.VSStd12CmdID.PeekDefinition,
