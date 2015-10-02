@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <PackageManifest Version="2.0.0" xmlns="http://schemas.microsoft.com/developer/vsx-schema/2011" xmlns:d="http://schemas.microsoft.com/developer/vsx-schema-design/2011">
   <Metadata>
-    <Identity Id="MiddleClickToPeekDefinition.797fa000-a53f-4ef7-9027-c1c0e728c3d1" Version="1.2.1" Language="en-US" Publisher="Daniel Bobbitt" />
+    <Identity Id="MiddleClickToPeekDefinition.797fa000-a53f-4ef7-9027-c1c0e728c3d1" Version="1.2.2" Language="en-US" Publisher="Daniel Bobbitt" />
     <DisplayName>MiddleClickDefinition</DisplayName>
     <Description xml:space="preserve">Adds ability to Peek or Go To Definitions using middleclicks</Description>
     <Icon>midclickicon.png</Icon>

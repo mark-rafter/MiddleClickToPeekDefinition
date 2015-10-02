@@ -10,7 +10,7 @@ using System.Runtime.InteropServices;
 namespace MiddleClickToPeekDefinition
 {
     [ClassInterface(ClassInterfaceType.AutoDispatch)]
-    [CLSCompliant(false), ComVisible(true)]
+    [ComVisible(true)]
     public class OptionsPage : DialogPage
     {
         private CommandSetting ctrlMiddleClickSetting = CommandSetting.PeekDefinition;
@@ -35,13 +35,6 @@ namespace MiddleClickToPeekDefinition
             get { return ctrlMiddleClickSetting; }
             set { ctrlMiddleClickSetting = value; }
         }
-    }
-
-    public enum CommandSetting
-    {
-        Nothing,
-        PeekDefinition,
-        GoToDefinition
     }
 
     public class EnumTypeConverter : EnumConverter

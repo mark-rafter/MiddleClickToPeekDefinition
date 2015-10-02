@@ -116,8 +116,10 @@ namespace MiddleClickToPeekDefinition
 
         private EnvDTE.Properties getProperties()
         {
-            return _envSvc.get_Properties("MiddleClickDefinition", "General");            
+            //return _envSvc.get_Properties("MiddleClickDefinition2", "General2");            
+            return _envSvc.get_Properties("MiddleClickDefinition", "General");
         }
+
 
         public CommandSetting MiddleClick()
         {

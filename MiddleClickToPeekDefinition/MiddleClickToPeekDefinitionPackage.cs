@@ -11,7 +11,8 @@ namespace MiddleClickToPeekDefinition
     [ProvideBindingPath]        
     [PackageRegistration(UseManagedResourcesOnly=true)]
     [ProvideOptionPage(typeof(OptionsPage), "MiddleClickDefinition", "General", 0, 0, true)]    
+    //[ProvideOptionPage(typeof(FreshOptionsPage), "MiddleClickDefinition2", "General2", 0, 0, true)]
     public class MiddleClickToPeekDefinitionPackage : Package
-    {       
+    {
     }
 }
